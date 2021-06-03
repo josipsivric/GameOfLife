@@ -3,7 +3,7 @@ import copy
 import tkinter as tk
 from tkinter import messagebox
 
-from GameOfLife.Logic import board_generation
+from Logic import board_generation
 
 ALIVE = 1
 DEAD = 0
@@ -113,8 +113,9 @@ class GameOfLife:
         if len(value) > 0:
             try:
                 value_int = int(value)
-                if 0 < int(value) > 100000:
-                    messagebox.showwarning("Invalid input", "Number must be between 0 and 100000!")
+                if 0 < int(value) > number_columns*number_rows:
+                    messagebox.showwarning("Invalid input", "Number must be between 0 and " +
+                                           str(number_columns*number_rows)+"!")
                     self.number_var.set("0")
                 else:
                     self.number = value_int
