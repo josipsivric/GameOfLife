@@ -22,9 +22,6 @@ class GameOfLife:
     def __init__(self):
         self.root = tk.Tk()
 
-        self.gen = tk.StringVar()
-        self.generation = 0
-        self.gen.set("Generation: " + str(self.generation))
         self.control_frame = tk.LabelFrame(self.root, text="Controls")
         self.control_frame.grid(row=0, column=0, padx=10, pady=5, sticky="N")
         self.canvas_frame = tk.LabelFrame(self.root, text="Board")
@@ -68,6 +65,10 @@ class GameOfLife:
                                            command=self.randomize_fixed_call)
         self.random_num_button.grid(row=2, column=1, padx=5, pady=5)
 
+        self.gen = tk.StringVar()
+        self.generation = 0
+        self.gen.set("Generation: " + str(self.generation))
+
         self.play_button = tk.Button(self.control_frame, text="Start", width=39, command=self.play)
         self.play_button.grid(row=3, column=0, padx=5, pady=5, columnspan=2)
 
@@ -109,6 +110,11 @@ class GameOfLife:
                 self.percentage_var.set("0")
 
     def limit_input_num(self, *args):
+        """ Verify input of fixed number of alive cells field.
+
+        :param args:
+        :return: None
+        """
         value = self.number_var.get()
         if len(value) > 0:
             try:
@@ -124,6 +130,13 @@ class GameOfLife:
                 self.number_var.set("0")
 
     def randomize_board_select(self, board, select, num):
+        """ Randomize entire board according to selection made.
+
+        :param board: Current board
+        :param select: Select randomization mode
+        :param num: Percentage or fixed number of live cells
+        :return: New randomized board
+        """
         if select == 0:
             new_b = board_generation.randomize_board_chance(board, num)
             return new_b
@@ -132,6 +145,10 @@ class GameOfLife:
             return new_b
 
     def randomize_chance_call(self):
+        """ Method for calling percentage randomization.
+
+        :return: New randomized board
+        """
         new_b = self.randomize_board_select(self.board, 0, self.percent)
         self.remember_state(new_b)
         self.generation = 0
@@ -142,6 +159,10 @@ class GameOfLife:
         return new_b
 
     def randomize_fixed_call(self):
+        """ Method for calling fixed number randomization.
+
+        :return: New randomized board
+        """
         new_b = self.randomize_board_select(self.board, 1, self.number)
         self.remember_state(new_b)
         self.generation = 0
@@ -152,6 +173,11 @@ class GameOfLife:
         return new_b
 
     def clear_board(self, board):
+        """ Sets all cells to dead.
+
+        :param board: Current board
+        :return: None
+        """
         new_b = board_generation.empty_board(board)
         self.remember_state(new_b)
         self.generation = 0
@@ -161,6 +187,11 @@ class GameOfLife:
         self.canvas.after(1, self.draw(new_b))
 
     def fill_board(self, board):
+        """ Sets all cells to alive.
+
+        :param board: Current board
+        :return: None
+        """
         new_b = board_generation.full_board(board)
         self.remember_state(new_b)
         self.generation = 0
@@ -170,6 +201,11 @@ class GameOfLife:
         self.canvas.after(1, self.draw(new_b))
 
     def draw(self, board):
+        """ Redraw entire board at once.
+
+        :param board: Current board for drawing
+        :return: None
+        """
         self.canvas.delete("all")
         self.canvas.update()
         for i in range(len(board)):
@@ -180,16 +216,32 @@ class GameOfLife:
                     self.cell_dead(i, j)
 
     def cell_alive(self, row, column):
+        """ Create black rectangle at target location to create visual representation of live cell.
+
+        :param row: Row of live cell
+        :param column: Column of live cell
+        :return: None
+        """
         self.canvas.create_rectangle(1 + (column * 12), 1 + (row * 12), 11 + (column * 12), 11 + (row * 12),
                                      fill="black", width=0)
         self.canvas.grid(padx=(8, 5), pady=5)
 
     def cell_dead(self, row, column):
+        """ Create empty rectangle at target location to create visual representation of dead cell.
+
+        :param row: Row of dead cell
+        :param column: Column of dead cell
+        :return: None
+        """
         self.canvas.create_rectangle(1 + (column * 12), 1 + (row * 12), 11 + (column * 12), 11 + (row * 12),
                                      fill=None, width=0)
         self.canvas.grid(padx=(8, 5), pady=5)
 
     def play(self):
+        """ Generate next board according to rules.
+
+        :return: None
+        """
         new_b = board_generation.next_board(self.board_states[len(self.board_states) - 1])
         self.remember_state(new_b)
         self.generation += 1
