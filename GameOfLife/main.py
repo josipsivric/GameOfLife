@@ -12,12 +12,13 @@ number_rows = 50
 
 
 # TODO
-# - Should use sparse matrix instead of 2D list - more efficient
+# - Should use sparse matrix instead of 2D list - may be more efficient (if I feel like it)
 # - Update single element instead whole board
 # - Add more functionality etc.
 
 class GameOfLife:
     board_states = []
+    _stop = 0
 
     def __init__(self):
         self.root = tk.Tk()
@@ -69,7 +70,7 @@ class GameOfLife:
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
 
-        self.play_button = tk.Button(self.control_frame, text="Start", width=39, command=self.play)
+        self.play_button = tk.Button(self.control_frame, text="Start", width=39, command=self.start)
         self.play_button.grid(row=3, column=0, padx=5, pady=5, columnspan=2)
 
         self.gen_label = tk.Label(self.control_frame, textvariable=self.gen)
@@ -119,9 +120,9 @@ class GameOfLife:
         if len(value) > 0:
             try:
                 value_int = int(value)
-                if 0 < int(value) > number_columns*number_rows:
+                if 0 < int(value) > number_columns * number_rows:
                     messagebox.showwarning("Invalid input", "Number must be between 0 and " +
-                                           str(number_columns*number_rows)+"!")
+                                           str(number_columns * number_rows) + "!")
                     self.number_var.set("0")
                 else:
                     self.number = value_int
@@ -155,7 +156,7 @@ class GameOfLife:
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
         self.canvas.update()
-        self.canvas.after(1, self.draw(new_b))
+        self.canvas.after(1, self.draw, new_b)
         return new_b
 
     def randomize_fixed_call(self):
@@ -169,7 +170,7 @@ class GameOfLife:
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
         self.canvas.update()
-        self.canvas.after(1, self.draw(new_b))
+        self.canvas.after(1, self.draw, new_b)
         return new_b
 
     def clear_board(self, board):
@@ -184,7 +185,7 @@ class GameOfLife:
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
         self.canvas.update()
-        self.canvas.after(1, self.draw(new_b))
+        self.draw(new_b)
 
     def fill_board(self, board):
         """ Sets all cells to alive.
@@ -198,22 +199,7 @@ class GameOfLife:
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
         self.canvas.update()
-        self.canvas.after(1, self.draw(new_b))
-
-    def draw(self, board):
-        """ Redraw entire board at once.
-
-        :param board: Current board for drawing
-        :return: None
-        """
-        self.canvas.delete("all")
-        self.canvas.update()
-        for i in range(len(board)):
-            for j in range(len(board[i])):
-                if board[i][j] == ALIVE:
-                    self.cell_alive(i, j)
-                else:
-                    self.cell_dead(i, j)
+        self.draw(new_b)
 
     def cell_alive(self, row, column):
         """ Create black rectangle at target location to create visual representation of live cell.
@@ -237,6 +223,21 @@ class GameOfLife:
                                      fill=None, width=0)
         self.canvas.grid(padx=(8, 5), pady=5)
 
+    def draw(self, board):
+        """ Redraw entire board at once.
+
+        :param board: Current board for drawing
+        :return: None
+        """
+        self.canvas.delete("all")
+        for i in range(len(board)):
+            for j in range(len(board[i])):
+                if board[i][j] == ALIVE:
+                    self.cell_alive(i, j)
+                else:
+                    self.cell_dead(i, j)
+        self.canvas.update()
+
     def play(self):
         """ Generate next board according to rules.
 
@@ -247,6 +248,19 @@ class GameOfLife:
         self.generation += 1
         self.gen.set("Generation: " + str(self.generation))
         self.draw(new_b)
+        if self._stop == 0:
+            self.canvas.after(1, self.play)
+        else:
+            self.play_button.configure(text="Start", command=self.start)
+            self._stop = 0
+
+    def start(self):
+        self.play_button.configure(text="Stop", command=self.stop)
+        self.play()
+
+    def stop(self):
+        self._stop = 1  # low-tech way to start-stop, but after_cancel has some problems when running too fast
+                        # and i don't feel like debugging internal library. Maybe sometime later (probably not :D)
 
 
 if __name__ == '__main__':
