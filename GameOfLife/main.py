@@ -19,19 +19,22 @@ number_rows = 50
 class GameOfLife:
     board_states = []
     _stop = 0
+    board = [[DEAD] * number_rows for _ in range(number_columns)]
 
     def __init__(self):
         self.root = tk.Tk()
+        self.root.title("Game Of Life")
+        self.root.resizable(False, False)
 
         self.control_frame = tk.LabelFrame(self.root, text="Controls")
-        self.control_frame.grid(row=0, column=0, padx=10, pady=5, sticky="N")
+        self.control_frame.grid(row=0, column=0, padx=5, pady=5, sticky="N")
         self.canvas_frame = tk.LabelFrame(self.root, text="Board")
-        self.canvas_frame.grid(row=0, column=2, padx=5, pady=5, sticky="N")
+        self.canvas_frame.grid(row=0, column=1, rowspan=2, padx=5, pady=5, sticky="NE")
 
-        self.board = [[DEAD] * number_rows for _ in range(number_columns)]
+        self.canvas = tk.Canvas(self.canvas_frame, width=len(self.board) * 12, height=len(self.board[0]) * 12,
+                                highlightthickness=0, borderwidth=0)
+
         self.remember_state(self.board)
-
-        self.canvas = tk.Canvas(self.canvas_frame, width=len(self.board) * 12, height=len(self.board[0]) * 12)
         self.draw(self.board)
 
         self.empty_button = tk.Button(self.control_frame, text="Empty board",
@@ -66,13 +69,12 @@ class GameOfLife:
                                            command=self.randomize_fixed_call)
         self.random_num_button.grid(row=2, column=1, padx=5, pady=5)
 
-        self.gen = tk.StringVar()
-        self.generation = 0
-        self.gen.set("Generation: " + str(self.generation))
-
         self.play_button = tk.Button(self.control_frame, text="Start", width=39, command=self.start)
         self.play_button.grid(row=3, column=0, padx=5, pady=5, columnspan=2)
 
+        self.gen = tk.StringVar()
+        self.generation = 0
+        self.gen.set("Generation: " + str(self.generation))
         self.gen_label = tk.Label(self.control_frame, textvariable=self.gen)
         self.gen_label.grid(row=4, column=0, padx=5, pady=5, columnspan=2)
 
@@ -155,7 +157,7 @@ class GameOfLife:
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
-        self.canvas.update()
+        self.canvas.update_idletasks()
         self.canvas.after(1, self.draw, new_b)
         return new_b
 
@@ -169,7 +171,7 @@ class GameOfLife:
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
-        self.canvas.update()
+        self.canvas.update_idletasks()
         self.canvas.after(1, self.draw, new_b)
         return new_b
 
@@ -184,7 +186,7 @@ class GameOfLife:
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
-        self.canvas.update()
+        self.canvas.update_idletasks()
         self.draw(new_b)
 
     def fill_board(self, board):
@@ -198,7 +200,7 @@ class GameOfLife:
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
-        self.canvas.update()
+        self.canvas.update_idletasks()
         self.draw(new_b)
 
     def cell_alive(self, row, column):
@@ -208,9 +210,8 @@ class GameOfLife:
         :param column: Column of live cell
         :return: None
         """
-        self.canvas.create_rectangle(1 + (column * 12), 1 + (row * 12), 11 + (column * 12), 11 + (row * 12),
-                                     fill="black", width=0)
-        self.canvas.grid(padx=(8, 5), pady=5)
+        self.canvas.create_rectangle(column * 12, row * 12, 11 + column * 12, 11 + row * 12, fill="black", width=0)
+        self.canvas.grid(padx=5, pady=5)
 
     def cell_dead(self, row, column):
         """ Create empty rectangle at target location to create visual representation of dead cell.
@@ -219,9 +220,8 @@ class GameOfLife:
         :param column: Column of dead cell
         :return: None
         """
-        self.canvas.create_rectangle(1 + (column * 12), 1 + (row * 12), 11 + (column * 12), 11 + (row * 12),
-                                     fill=None, width=0)
-        self.canvas.grid(padx=(8, 5), pady=5)
+        self.canvas.create_rectangle(column * 12, row * 12, 11 + column * 12, 11 + row * 12, fill=None, width=0)
+        self.canvas.grid(padx=5, pady=5)
 
     def draw(self, board):
         """ Redraw entire board at once.
@@ -236,7 +236,7 @@ class GameOfLife:
                     self.cell_alive(i, j)
                 else:
                     self.cell_dead(i, j)
-        self.canvas.update()
+        self.canvas.update_idletasks()
 
     def play(self):
         """ Generate next board according to rules.
@@ -260,7 +260,7 @@ class GameOfLife:
 
     def stop(self):
         self._stop = 1  # low-tech way to start-stop, but after_cancel has some problems when running too fast
-                        # and i don't feel like debugging internal library. Maybe sometime later (probably not :D)
+        # and i don't feel like debugging internal library. Maybe sometime later (probably not :D)
 
 
 if __name__ == '__main__':
