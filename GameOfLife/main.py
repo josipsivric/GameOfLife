@@ -255,11 +255,20 @@ class GameOfLife:
             self._stop = 0
 
     def start(self):
+        """ Start continuous calculation of boards.
+
+        :return: None
+        """
         self.play_button.configure(text="Stop", command=self.stop)
         self.play()
 
     def stop(self):
-        self._stop = 1  # low-tech way to start-stop, but after_cancel has some problems when running too fast
+        """ Stop continuous calculation of boards.
+
+        :return: None
+        """
+        self._stop = 1
+        # low-tech way to start-stop, but after_cancel has some problems when running too fast
         # and i don't feel like debugging internal library. Maybe sometime later (probably not :D)
 
 
