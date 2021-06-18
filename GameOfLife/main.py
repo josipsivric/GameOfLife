@@ -11,13 +11,9 @@ number_columns = 50
 number_rows = 50
 
 
-# TODO
-# - Should use sparse matrix instead of 2D list - may be more efficient (if I feel like it)
-# - Update single element instead whole board
-# - Add more functionality etc.
-
 class GameOfLife:
-    board_states = []
+    boards_back_stack = []
+    boards_forward_stack = []
     _stop = 0
     board = [[DEAD] * number_rows for _ in range(number_columns)]
 
@@ -34,7 +30,7 @@ class GameOfLife:
         self.canvas = tk.Canvas(self.canvas_frame, width=len(self.board) * 12, height=len(self.board[0]) * 12,
                                 highlightthickness=0, borderwidth=0)
 
-        self.remember_state(self.board)
+        self.push_to_back_stack(self.board)
         self.draw(self.board)
 
         self.empty_button = tk.Button(self.control_frame, text="Empty board",
@@ -69,8 +65,12 @@ class GameOfLife:
                                            command=self.randomize_fixed_call)
         self.random_num_button.grid(row=2, column=1, padx=5, pady=5)
 
-        self.play_button = tk.Button(self.control_frame, text="Start", width=39, command=self.start)
+        self.back_button = tk.Button(self.control_frame, text="<<", command=self.back)
+        self.back_button.grid(row=3, column=0, padx=5, pady=5, sticky="W")
+        self.play_button = tk.Button(self.control_frame, text="Start", width=28, command=self.start)
         self.play_button.grid(row=3, column=0, padx=5, pady=5, columnspan=2)
+        self.forward_button = tk.Button(self.control_frame, text=">>", command=self.forward)
+        self.forward_button.grid(row=3, column=1, padx=5, pady=5, sticky="E")
 
         self.gen = tk.StringVar()
         self.generation = 0
@@ -80,18 +80,26 @@ class GameOfLife:
 
         self.root.mainloop()
 
-    def remember_state(self, board):
+    def push_to_back_stack(self, board):
         """ Adds current state of the board to the list for later use. List accepts 50 boards.
         In case of more, delete the oldest and save.
 
         :param board: board to be saved
         :return: None
         """
-        if len(self.board_states) > 50:
-            self.board_states.pop(0)
-            self.board_states.append(copy.deepcopy(board))
+        if len(self.boards_back_stack) > 50:
+            self.boards_back_stack.pop(0)
+            self.boards_back_stack.append(copy.deepcopy(board))
         else:
-            self.board_states.append(copy.deepcopy(board))
+            self.boards_back_stack.append(copy.deepcopy(board))
+
+    def push_to_forward_stack(self, board):
+        """ Adds current state of the board to the list for later use.
+
+        :param board: board to be saved
+        :return: None
+        """
+        self.boards_forward_stack.append(copy.deepcopy(board))
 
     def limit_input_per(self, *args):
         """ Verify input of percent field.
@@ -153,7 +161,7 @@ class GameOfLife:
         :return: New randomized board
         """
         new_b = self.randomize_board_select(self.board, 0, self.percent)
-        self.remember_state(new_b)
+        self.push_to_back_stack(new_b)
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
@@ -167,7 +175,7 @@ class GameOfLife:
         :return: New randomized board
         """
         new_b = self.randomize_board_select(self.board, 1, self.number)
-        self.remember_state(new_b)
+        self.push_to_back_stack(new_b)
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
@@ -182,7 +190,7 @@ class GameOfLife:
         :return: None
         """
         new_b = board_generation.empty_board(board)
-        self.remember_state(new_b)
+        self.push_to_back_stack(new_b)
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
@@ -196,7 +204,7 @@ class GameOfLife:
         :return: None
         """
         new_b = board_generation.full_board(board)
-        self.remember_state(new_b)
+        self.push_to_back_stack(new_b)
         self.generation = 0
         self.gen.set("Generation: " + str(self.generation))
         self.canvas.delete("all")
@@ -243,8 +251,8 @@ class GameOfLife:
 
         :return: None
         """
-        new_b = board_generation.next_board(self.board_states[len(self.board_states) - 1])
-        self.remember_state(new_b)
+        new_b = board_generation.next_board(self.boards_back_stack[len(self.boards_back_stack) - 1])
+        self.push_to_back_stack(new_b)
         self.generation += 1
         self.gen.set("Generation: " + str(self.generation))
         self.draw(new_b)
@@ -270,6 +278,22 @@ class GameOfLife:
         self._stop = 1
         # low-tech way to start-stop, but after_cancel has some problems when running too fast
         # and i don't feel like debugging internal library. Maybe sometime later (probably not :D)
+
+    def back(self):
+        """ Go one step back.
+
+        :return: None
+        """
+        self.push_to_forward_stack(self.boards_back_stack.pop())
+        self.draw(self.boards_back_stack[-1])
+
+    def forward(self):
+        """ Go one step forward.
+
+        :return: None
+        """
+        self.push_to_back_stack(self.boards_forward_stack.pop())
+        self.draw(self.boards_back_stack[-1])
 
 
 if __name__ == '__main__':
