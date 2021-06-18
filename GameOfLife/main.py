@@ -284,16 +284,18 @@ class GameOfLife:
 
         :return: None
         """
-        self.push_to_forward_stack(self.boards_back_stack.pop())
-        self.draw(self.boards_back_stack[-1])
+        if len(self.boards_back_stack) > 1:
+            self.push_to_forward_stack(self.boards_back_stack.pop())
+            self.draw(self.boards_back_stack[-1])
 
     def forward(self):
         """ Go one step forward.
 
         :return: None
         """
-        self.push_to_back_stack(self.boards_forward_stack.pop())
-        self.draw(self.boards_back_stack[-1])
+        if len(self.boards_forward_stack) > 1:
+            self.push_to_back_stack(self.boards_forward_stack.pop())
+            self.draw(self.boards_back_stack[-1])
 
 
 if __name__ == '__main__':

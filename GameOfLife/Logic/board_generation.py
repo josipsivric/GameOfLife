@@ -49,7 +49,6 @@ def randomize_board_chance(board, chance):
             if chance >= number and chance != 0:
                 new_b[i][j] = ALIVE
             else:
-                print(number)
                 new_b[i][j] = DEAD
     return new_b
 
